@@ -1,1 +1,1 @@
-# Data-Driven Behavioral Safety Filter with Formal Safety Guarantees
+# Data-Driven Safety Filter with Formal Safety Guarantees
