@@ -1,6 +1,3 @@
-[submodule "ddsf"]
-	path = ddsf
-	url = https://github.com/aiulus/ddsf.git
 [submodule "Data-Driven-Reachability-Analysis"]
 	path = Data-Driven-Reachability-Analysis
 	url = https://github.com/aalanwar/Data-Driven-Reachability-Analysis.git
