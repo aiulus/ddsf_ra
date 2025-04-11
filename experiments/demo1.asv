@@ -56,7 +56,7 @@ u_d = reshape(u, dims.m, []);
 [H_u_perturbed, H_y_perturbed] = hankelDDSF(u_d, y_d_perturbed, lookup);
 
 lookup.H = [H_u; H_y];
-lookup.H_perturbed = [H_u_perturbed; H_y_perturbed];
+lookup.H_perturbed = [H_u_perturbed, H_y_perturbed];
 
 lookup.H_u = H_u;
 lookup.H_y = H_y;
@@ -90,8 +90,8 @@ logs_perturbed = struct( ...
         'loss', zeros(2, T_ini + T_sim) ...
     );
 
-%logs.x(:, 1:T_ini) = sys.params.x_ini;
-%logs_perturbed.x(:, 1:T_ini) = sys.params.x_ini;
+logs.x(:, 1:T_ini) = sys.params.x_ini;
+logs_perturbed.x(:, 1:T_ini) = sys.params.x_ini;
 
 T_d = run_options.T_d;
 %% Step 4: Run Receding Horizon DDSF
@@ -131,6 +131,8 @@ for t = (T_ini + 1):(T_ini + T_sim)
     logs.x(:, t - T_ini + 1) = A * x_prev_nom + B * u_next;
     logs_perturbed.x(:, t - T_ini + 1) = A * x_prev_noisy + B * u_next + w_k;
 
+    logs_perturbed.y(:, t - T_ini) = C * logs_perturbed.x(:, t - T_ini + 1) + D * u_next_p;
+
     % Update equilibrium sets
     lookup.sys.S_f.u_eq = [lookup.sys.S_f.u_eq, u_next];
     lookup.sys.S_f.y_eq = [lookup.sys.S_f.y_eq, y_next];
@@ -139,8 +141,6 @@ end
 % Crop logs
 logs.u = logs.u(:, T_ini + 1:end);
 logs.y = logs.y(:, T_ini + 1:end);
-logs_perturbed.u = logs_perturbed.u(:, T_ini + 1:end);
-logs_perturbed.y = logs_perturbed.y(:, T_ini + 1:end);
 lookup.logs = logs;
 
 %% Step 5: Plotting Nominal vs Perturbed
@@ -153,7 +153,7 @@ tiledlayout(dims.p, 1);
 for i = 1:dims.p
     nexttile;
     stairs(time, logs.y(i,:), 'b', 'LineWidth', 1.5); hold on;
-    stairs(time, logs_perturbed.y(i,:), 'r--', 'LineWidth', 1.5);
+    stairs(time, logs.y_noisy(i,:), 'r--', 'LineWidth', 1.5);
     legend('Nominal', 'Perturbed');
     xlabel('Time'); ylabel(sprintf('Output y[%d]', i));
     title(sprintf('Output Trajectory y[%d]: Nominal vs Perturbed', i));
