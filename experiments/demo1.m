@@ -1,6 +1,6 @@
 %% Step 1: Configuration
-systype = 'cruise_control';
-T_sim = 50; % Simulation length
+systype = 'quadrotor';
+T_sim = 10; % Simulation length
 data_options = struct( ...
     'datagen_mode', 'controlled_random', ...
     'scale', 1, ...
@@ -112,7 +112,7 @@ for t = (T_ini + 1):(T_ini + T_sim)
     logs.ul_t(:, t - T_ini) = ul_t; logs_perturbed.ul_t(:, t - T_ini) = ul_t;
 
     u_ini = logs.u(:, (t - T_ini):(t-1));
-    y_ini = logs.y(:, (t - T_ini):(t-1)); y_ini_p = logs.y(:, (t - T_ini):(t-1));
+    y_ini = logs.y(:, (t - T_ini):(t-1)); y_ini_p = logs_perturbed.y(:, (t - T_ini):(t-1));
     traj_ini = [u_ini; y_ini]; traj_ini_p = [u_ini; y_ini_p];
 
     [u_opt, y_opt] = optDDSF(lookup, u_l, traj_ini);
@@ -155,16 +155,16 @@ for t = (T_ini + 1):(T_ini + T_sim)
 end
 
 % Crop logs
-logs.u = logs.u(:, T_ini + 1:end);
-logs.y = logs.y(:, T_ini + 1:end);
-logs_perturbed.u = logs_perturbed.u(:, T_ini + 1:end);
-logs_perturbed.y = logs_perturbed.y(:, T_ini + 1:end);
+logs.u = logs.u(:, T_ini + 1:end-1);
+logs.y = logs.y(:, T_ini + 1:end-1);
+logs_perturbed.u = logs_perturbed.u(:, T_ini + 1:end-1);
+logs_perturbed.y = logs_perturbed.y(:, T_ini + 1:end-1);
 lookup.logs = logs;
+lookup.logs_perturbed = logs_perturbed;
 
 %% Step 5: Plotting Nominal vs Perturbed
 time = 1:T_sim;
-plotDDSF(time, logs, lookup); 
-plotDDSF(time, logs_perturbed, lookup); 
+doublePlotDDSF(time, logs, logs_perturbed, lookup); 
 
 function loss = get_loss(lookup, u_l, u_opt, y_opt)
     R = lookup.opt_params.R;
